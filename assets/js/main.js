@@ -43,9 +43,9 @@ setTimeout(()=>{showProof();setInterval(showProof,7500);},3000);
 const overlay=document.getElementById('upsellOverlay');
 function openUpsell(){overlay.classList.add('active');}
 function closeUpsell(){overlay.classList.remove('active');}
-function goBasic(){closeUpsell();window.location.href='https://pay.cakto.com.br/qheb86a_884830';}
-function goPremium(){window.location.href='https://pay.cakto.com.br/i2bch2k_884932';}
-function goPremiumDiscount(){closeUpsell();window.location.href='https://pay.cakto.com.br/3e9rknz_886979';}
+function goBasic(){closeUpsell();window.location.href='https://zuckpay.com.br/checkout/pack-basico';}
+function goPremium(){window.location.href='https://zuckpay.com.br/checkout/pack-premium';}
+function goPremiumDiscount(){closeUpsell();window.location.href='https://zuckpay.com.br/checkout/premium-com-desconto';}
 window.openUpsell=openUpsell;
 window.closeUpsell=closeUpsell;
 window.goBasic=goBasic;
