@@ -43,9 +43,9 @@ setTimeout(()=>{showProof();setInterval(showProof,7500);},3000);
 const overlay=document.getElementById('upsellOverlay');
 function openUpsell(){overlay.classList.add('active');}
 function closeUpsell(){overlay.classList.remove('active');}
-function goBasic(){closeUpsell();window.location.href='https://pay.lowify.com.br/checkout?product_id=22K1oV';}
-function goPremium(){window.location.href='https://pay.lowify.com.br/checkout?product_id=uOB9b9';}
-function goPremiumDiscount(){closeUpsell();window.location.href='https://pay.lowify.com.br/checkout?product_id=GDVywd';}
+function goBasic(){closeUpsell();window.location.href='https://pay.lowify.com.br/checkout?product_id=m466jk';}
+function goPremium(){window.location.href='https://pay.lowify.com.br/checkout?product_id=GDVywd';}
+function goPremiumDiscount(){closeUpsell();window.location.href='https://pay.lowify.com.br/checkout?product_id=22K1oV';}
 window.openUpsell=openUpsell;
 window.closeUpsell=closeUpsell;
 window.goBasic=goBasic;
