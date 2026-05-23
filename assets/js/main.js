@@ -41,14 +41,146 @@ function showProof(){
 setTimeout(()=>{showProof();setInterval(showProof,7500);},3000);
 
 const overlay=document.getElementById('upsellOverlay');
+const FBCLID_STORAGE_KEY='checkout_fbclid';
+
+function getStoredFbclid(){
+  try{
+    return sessionStorage.getItem(FBCLID_STORAGE_KEY)||'';
+  }catch(e){
+    return '';
+  }
+}
+
+function storeFbclid(value){
+  if(!value)return;
+  try{
+    sessionStorage.setItem(FBCLID_STORAGE_KEY,value);
+  }catch(e){}
+}
+storeFbclid(new URLSearchParams(window.location.search).get('fbclid'));
+
+function withPageParams(targetUrl){
+  const pageParams=new URLSearchParams(window.location.search);
+  const currentFbclid=pageParams.get('fbclid');
+  if(currentFbclid){
+    storeFbclid(currentFbclid);
+  }
+
+  const url=new URL(targetUrl,window.location.href);
+  const storedFbclid=currentFbclid||getStoredFbclid();
+  if(storedFbclid&&!url.searchParams.has('fbclid')){
+    url.searchParams.append('fbclid',storedFbclid);
+  }
+
+  if(!pageParams.toString())return url.toString();
+
+  pageParams.forEach((value,key)=>{
+    if(!url.searchParams.has(key)){
+      url.searchParams.append(key,value);
+    }
+  });
+
+  return url.toString();
+}
+
+function isCheckoutUrl(targetUrl){
+  if(!targetUrl||targetUrl.charAt(0)==='#')return false;
+  try{
+    const url=new URL(targetUrl,window.location.href);
+    return url.hostname==='pay.lowify.com.br'||url.pathname.indexOf('/checkout')!==-1;
+  }catch(e){
+    return false;
+  }
+}
+
+function updateCheckoutDestinations(root){
+  root.querySelectorAll('a[href]').forEach(function(link){
+    const href=link.getAttribute('href');
+    if(isCheckoutUrl(href)){
+      setAttrWithPageParams(link,'href',href);
+    }
+  });
+
+  root.querySelectorAll('form[action]').forEach(function(form){
+    const action=form.getAttribute('action');
+    if(isCheckoutUrl(action)){
+      setAttrWithPageParams(form,'action',action);
+    }
+  });
+
+  root.querySelectorAll('iframe[src]').forEach(function(iframe){
+    const src=iframe.getAttribute('src');
+    if(isCheckoutUrl(src)){
+      setAttrWithPageParams(iframe,'src',src);
+    }
+  });
+}
+
+function setAttrWithPageParams(element,attr,value){
+  const nextValue=withPageParams(value);
+  if(nextValue!==value){
+    element.setAttribute(attr,nextValue);
+  }
+}
+
+function goToCheckout(url){
+  window.location.href=withPageParams(url);
+}
+
 function openUpsell(){overlay.classList.add('active');}
 function closeUpsell(){overlay.classList.remove('active');}
-function goBasic(){closeUpsell();window.location.href='https://pay.lowify.com.br/checkout?product_id=m466jk';}
-function goPremium(){window.location.href='https://pay.lowify.com.br/checkout?product_id=GDVywd';}
-function goPremiumDiscount(){closeUpsell();window.location.href='https://pay.lowify.com.br/checkout?product_id=22K1oV';}
+function goBasic(){closeUpsell();goToCheckout('https://pay.lowify.com.br/checkout?product_id=m466jk');}
+function goPremium(){goToCheckout('https://pay.lowify.com.br/checkout?product_id=GDVywd');}
+function goPremiumDiscount(){closeUpsell();goToCheckout('https://pay.lowify.com.br/checkout?product_id=22K1oV');}
 window.openUpsell=openUpsell;
 window.closeUpsell=closeUpsell;
 window.goBasic=goBasic;
 window.goPremium=goPremium;
 window.goPremiumDiscount=goPremiumDiscount;
+window.withPageParams=withPageParams;
+window.goToCheckout=goToCheckout;
+updateCheckoutDestinations(document);
+document.addEventListener('click',function(e){
+  const link=e.target.closest&&e.target.closest('a[href]');
+  if(link&&isCheckoutUrl(link.getAttribute('href'))){
+    setAttrWithPageParams(link,'href',link.getAttribute('href'));
+  }
+},true);
+document.addEventListener('submit',function(e){
+  const form=e.target;
+  if(form&&isCheckoutUrl(form.getAttribute&&form.getAttribute('action'))){
+    const action=form.getAttribute('action');
+    setAttrWithPageParams(form,'action',action);
+  }
+},true);
+new MutationObserver(function(mutations){
+  mutations.forEach(function(mutation){
+    if(mutation.type==='attributes'){
+      updateCheckoutNode(mutation.target);
+      return;
+    }
+
+    mutation.addedNodes.forEach(function(node){
+      if(node.nodeType!==1)return;
+      updateCheckoutNode(node);
+      updateCheckoutDestinations(node);
+    });
+  });
+}).observe(document.documentElement,{attributes:true,attributeFilter:['href','action','src'],childList:true,subtree:true});
+
+function updateCheckoutNode(node){
+  if(!node.getAttribute)return;
+
+  if(isCheckoutUrl(node.getAttribute('href'))){
+    setAttrWithPageParams(node,'href',node.getAttribute('href'));
+  }
+
+  if(isCheckoutUrl(node.getAttribute('action'))){
+    setAttrWithPageParams(node,'action',node.getAttribute('action'));
+  }
+
+  if(isCheckoutUrl(node.getAttribute('src'))){
+    setAttrWithPageParams(node,'src',node.getAttribute('src'));
+  }
+}
 overlay.addEventListener('click',function(e){if(e.target===overlay)closeUpsell();});
