@@ -40,6 +40,60 @@ function showProof(){
 }
 setTimeout(()=>{showProof();setInterval(showProof,7500);},3000);
 
+(function(){
+  const carousel=document.getElementById('testimonialsCarousel');
+  if(!carousel)return;
+
+  const track=carousel.querySelector('.testimonial-track');
+  const slides=Array.from(carousel.querySelectorAll('.testimonial-slide'));
+  const prev=carousel.querySelector('.testimonial-prev');
+  const next=carousel.querySelector('.testimonial-next');
+  const dots=Array.from(document.querySelectorAll('.testimonial-dot'));
+  if(!track||!slides.length)return;
+
+  let current=0;
+  let autoplay;
+  let touchStartX=0;
+  let touchEndX=0;
+
+  function showSlide(index){
+    current=(index+slides.length)%slides.length;
+    track.style.transform='translateX(-'+(current*100)+'%)';
+    dots.forEach((dot,i)=>{
+      dot.classList.toggle('active',i===current);
+      dot.setAttribute('aria-current',i===current?'true':'false');
+    });
+  }
+
+  function restartAutoplay(){
+    clearInterval(autoplay);
+    autoplay=setInterval(()=>showSlide(current+1),5200);
+  }
+
+  function goToSlide(index){
+    showSlide(index);
+    restartAutoplay();
+  }
+
+  prev&&prev.addEventListener('click',()=>goToSlide(current-1));
+  next&&next.addEventListener('click',()=>goToSlide(current+1));
+  dots.forEach((dot,i)=>dot.addEventListener('click',()=>goToSlide(i)));
+
+  carousel.addEventListener('touchstart',function(e){
+    touchStartX=e.changedTouches[0].clientX;
+  },{passive:true});
+
+  carousel.addEventListener('touchend',function(e){
+    touchEndX=e.changedTouches[0].clientX;
+    const distance=touchEndX-touchStartX;
+    if(Math.abs(distance)<45)return;
+    goToSlide(current+(distance<0?1:-1));
+  },{passive:true});
+
+  showSlide(0);
+  restartAutoplay();
+})();
+
 const overlay=document.getElementById('upsellOverlay');
 const FBCLID_STORAGE_KEY='checkout_fbclid';
 
